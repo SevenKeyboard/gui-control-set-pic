@@ -24,7 +24,7 @@ class VersionManager_guiControlSetPic
     static _ := VersionManager_guiControlSetPic._init()
     _init()    {
         global
-        GUICONTROLSETPIC_VERSION := "1.0.0"
+        GUICONTROLSETPIC_VERSION := "1.0.1"
     }
 }
 guiControlSetPic(controlID, value)    {
@@ -52,11 +52,15 @@ guiControlSetPic(controlID, value)    {
         pBitmapV:=Gdip_createBitmapFromHICON(hIconV)
         hBitmapV:=Gdip_createHBITMAPFromBitmap(pBitmapV)    ,_del.hBitmapV:=true
     }  else if (fileExist(value)~="^[^D]+$")    {
-        lpFileName:=value ;  Get Absolute path from relative path  https://www.autohotkey.com/boards/viewtopic.php?f=83&t=67050
-        nBufferLength:=dllCall("Kernel32\GetFullPathName", "Str",lpFileName, "UInt",0, "Ptr",0, "Ptr",0, "UInt")
-        varSetCapacity(lpBuffer,nBufferLength*(A_IsUnicode?2:1))
-        dllCall("Kernel32\GetFullPathName", "Str",lpFileName, "UInt",nBufferLength, "Str",lpBuffer, "Ptr",0, "UInt")
-        pBitmapV:=Gdip_createBitmapFromFile(lpBuffer)
+        fileName:=value
+        neededChars:=dllCall("Kernel32.dll\GetFullPathNameW", "WStr",fileName, "UInt",0, "Ptr",0, "Ptr",0, "UInt")
+        if (neededChars)    {
+            varSetCapacity(fullPathName,neededChars*2,0)    
+            copiedChars:=dllCall("Kernel32.dll\GetFullPathNameW", "WStr",fileName, "UInt",neededChars, "Ptr",&fullPathName, "Ptr",0, "UInt")
+            if (copiedChars)
+                fileName:=strGet(&fullPathName, copiedChars, "UTF-16")
+        }
+        pBitmapV:=Gdip_createBitmapFromFile(fileName)
         hBitmapV:=Gdip_createHBITMAPFromBitmap(pBitmapV)    ,_del.hBitmapV:=true
     }
     if (!pBitmapV && !hBitmapV)
